@@ -1,12 +1,11 @@
 <!--
 Sync Impact Report
-- Version change: 1.1.0 -> 1.1.1 (pin Flutter SDK version 3.44.7)
+- Version change: 1.2.1 -> 1.2.2 (add thumb-zone ergonomics rule for bottom primary CTAs)
 - Modified principles: None
 - Added / Expanded sections:
-  - Technical Constraints & Standards (pinned Flutter SDK 3.44.7)
+  - Technical Constraints & Standards (Thumb-zone bottom primary CTA on forms)
 - Removed sections: None
-- Follow-up TODOs:
-  - TODO(UI_UX_PRO_MAX_SKILL): Install https://github.com/nextlevelbuilder/ui-ux-pro-max-skill into .agents/skills/ if not yet present.
+- Follow-up TODOs: None
 -->
 
 # loki Constitution
@@ -76,15 +75,20 @@ credentials, PII) MUST NEVER be written to logs or committed to version control.
   persist user tokens exclusively in `flutter_secure_storage`. Enforce HTTPS/TLS for all network
   traffic and redact sensitive fields from logs.
 - **Performance, UI/UX & Accessibility**:
-  - UI/UX design and component craftsmanship MUST follow the guidelines of
-    `ui-ux-pro-max-skill` (`https://github.com/nextlevelbuilder/ui-ux-pro-max-skill`).
+  - UI/UX design MUST follow **iOS / Cupertino Human Interface Guidelines** (`CupertinoTabScaffold`,
+    `CupertinoNavigationBar`, `CupertinoListSection.insetGrouped`, `CupertinoSlidingSegmentedControl`,
+    `CupertinoDatePicker`, `CupertinoAlertDialog`) inside a `GetMaterialApp` root shell for
+    cross-platform chart/localization stability, guided by `ui-ux-pro-max`
+    (`.agents/skills/ui-ux-pro-max/SKILL.md`).
   - Layouts MUST be responsive across mobile/tablet breakpoints without overflow errors.
-  - Apps MUST support both **Light Mode** and **Dark Mode** via centralized `ThemeData` tokens
-    (no hardcoded colors in widgets).
-  - All user-facing text MUST support **i18n** (localization via GetX `Translations` or Flutter
-    `gen_l10n`—no hardcoded display strings).
-  - Interactive widgets MUST meet **accessibility** standards: `Semantics` labels, minimum
-    48x48dp touch targets, and WCAG-compliant text contrast.
+  - Apps MUST support both **Light Mode** and **Dark Mode** via centralized `ThemeData` and
+    `CupertinoThemeData` tokens (no hardcoded colors in widgets).
+  - All user-facing text MUST support **i18n** (localization via GetX `Translations`—no hardcoded
+    display strings).
+  - Interactive widgets MUST meet **accessibility & thumb-zone ergonomics** standards:
+    `Semantics` labels, minimum 48x48dp touch targets, WCAG-compliant text contrast, and
+    primary form actions (Save/Submit) MUST be placed as full-width bottom primary buttons
+    inside `SafeArea` rather than small top-corner nav bar text actions.
 
 ## Development Workflow & Quality Gates
 
@@ -92,6 +96,9 @@ credentials, PII) MUST NEVER be written to logs or committed to version control.
   `flutter analyze` MUST pass with zero errors and zero unaddressed warnings before merge.
 - **Test Gate**: `flutter test` MUST pass 100% locally and in CI; skipped tests or relaxed
   assertions to force a green build are prohibited.
+- **UI & Responsive Verification Gate**: After any UI modification, widget tests MUST verify all
+  affected screens across narrow mobile (`360x740`), standard mobile (`390x844`), and tablet
+  (`768x1024`) viewports with zero `RenderFlex` overflow errors and valid `DefaultTextStyle`.
 - **Branch & Commit Hygiene**: Use feature branches (`feat/...`, `fix/...`) and Conventional
   Commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`).
 - **Spec-Driven Delivery**: Non-trivial features MUST follow the Spec Kit lifecycle
@@ -111,4 +118,4 @@ with an updated semantic version:
 - **MINOR**: New principles/sections added or materially expanded guidance.
 - **PATCH**: Clarifications, wording improvements, or non-semantic refinements.
 
-**Version**: 1.1.1 | **Ratified**: 2026-11-23 | **Last Amended**: 2026-11-23
+**Version**: 1.2.2 | **Ratified**: 2026-11-23 | **Last Amended**: 2026-11-23
