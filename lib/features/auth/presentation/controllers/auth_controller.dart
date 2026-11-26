@@ -43,15 +43,12 @@ class AuthController extends GetxController {
     localeCode.value = _prefsService.localeCode;
     currentUser.value = _authRepository.getCurrentUser();
     _ensureAnonymous().then((res) {
-      res.fold(
-        (u) => currentUser.value = u,
-        (f) {
-          if (f.code == 'admin-restricted-operation') {
-            statusMessage.value =
-                'Hãy liên kết/đăng nhập Google hoặc Email để đồng bộ dữ liệu.';
-          }
-        },
-      );
+      res.fold((u) => currentUser.value = u, (f) {
+        if (f.code == 'admin-restricted-operation') {
+          statusMessage.value =
+              'Hãy liên kết/đăng nhập Google hoặc Email để đồng bộ dữ liệu.';
+        }
+      });
     });
   }
 
@@ -70,10 +67,14 @@ class AuthController extends GetxController {
 
   Future<void> linkWithGoogle() async {
     final res = await _linkAccount.withGoogle();
-    res.fold((user) {
-      currentUser.value = user;
-      statusMessage.value = 'Đã liên kết Google thành công!';
-    }, (f) => statusMessage.value = f.message);
+    res.fold(
+      (user) {
+        currentUser.value = user;
+        statusMessage.value = 'Đã liên kết Google thành công!';
+      },
+      // User closed the account chooser: no error message needed.
+      (f) => statusMessage.value = f.code == 'cancelled' ? '' : f.message,
+    );
   }
 
   Future<void> linkWithEmail(String email, String password) async {

@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "898805140709-q7kd65dvgjmoc9ln85u0k7dv0uqn821a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.loki.loki",
+            "certificate_hash": "9e1c663469f380f6408bed39db3764b65cf10f13"
+          }
+        },
+        {
           "client_id": "898805140709-068nfdvm9ht8t9n5ta16t5qgirke2ml6.apps.googleusercontent.com",
           "client_type": 3
         }

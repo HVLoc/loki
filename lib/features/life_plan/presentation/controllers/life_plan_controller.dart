@@ -38,6 +38,7 @@ class LifePlanController extends GetxController {
   final RxList<LongTermGoal> goals = <LongTermGoal>[].obs;
   final Rx<GoalHorizon> selectedHorizon = GoalHorizon.oneYear.obs;
   final RxBool isLoading = false.obs;
+  final RxBool isSaving = false.obs;
 
   static const Uuid _uuid = Uuid();
 
@@ -68,16 +69,21 @@ class LifePlanController extends GetxController {
   }
 
   Future<void> saveWheelScores(List<WheelDimensionScore> scores) async {
-    final now = DateTime.now();
-    final quarter = ((now.month - 1) ~/ 3) + 1;
-    final assessment = WheelAssessment(
-      id: _uuid.v4(),
-      assessedAt: now,
-      quarterLabel: '${now.year}-Q$quarter',
-      scores: scores,
-    );
-    await _saveWheelAssessment(assessment);
-    await loadAll();
+    isSaving.value = true;
+    try {
+      final now = DateTime.now();
+      final quarter = ((now.month - 1) ~/ 3) + 1;
+      final assessment = WheelAssessment(
+        id: _uuid.v4(),
+        assessedAt: now,
+        quarterLabel: '${now.year}-Q$quarter',
+        scores: scores,
+      );
+      await _saveWheelAssessment(assessment);
+      await loadAll();
+    } finally {
+      isSaving.value = false;
+    }
   }
 
   Future<void> saveGoal({
@@ -88,20 +94,27 @@ class LifePlanController extends GetxController {
     required int progressPercent,
     String? changeReason,
   }) async {
-    final now = DateTime.now();
-    final goal = LongTermGoal(
-      id: existing?.id ?? _uuid.v4(),
-      title: title.trim(),
-      horizon: horizon,
-      dimensionKey: existing?.dimensionKey,
-      nextMonthPlan: nextMonthPlan.trim(),
-      progressPercent: progressPercent.clamp(0, 100),
-      status: progressPercent >= 100 ? GoalStatus.completed : GoalStatus.active,
-      createdAt: existing?.createdAt ?? now,
-      updatedAt: now,
-    );
-    await _saveGoalWithRevision(goal, changeReason: changeReason);
-    await loadAll();
+    isSaving.value = true;
+    try {
+      final now = DateTime.now();
+      final goal = LongTermGoal(
+        id: existing?.id ?? _uuid.v4(),
+        title: title.trim(),
+        horizon: horizon,
+        dimensionKey: existing?.dimensionKey,
+        nextMonthPlan: nextMonthPlan.trim(),
+        progressPercent: progressPercent.clamp(0, 100),
+        status: progressPercent >= 100
+            ? GoalStatus.completed
+            : GoalStatus.active,
+        createdAt: existing?.createdAt ?? now,
+        updatedAt: now,
+      );
+      await _saveGoalWithRevision(goal, changeReason: changeReason);
+      await loadAll();
+    } finally {
+      isSaving.value = false;
+    }
   }
 
   Future<List<GoalRevision>> fetchRevisions(String goalId) async {

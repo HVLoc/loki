@@ -9,11 +9,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await FirebaseBootstrap.initialize(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  final results = await Future.wait<dynamic>([
+    FirebaseBootstrap.initialize(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ),
+    SharedPreferences.getInstance(),
+  ]);
 
-  final prefs = await SharedPreferences.getInstance();
+  final prefs = results[1] as SharedPreferences;
   final prefsService = PrefsService(prefs);
   Get.put<PrefsService>(prefsService, permanent: true);
   Get.put<SecureStorageService>(SecureStorageService(), permanent: true);

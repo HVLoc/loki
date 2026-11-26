@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:loki/core/theme/app_theme.dart';
+import 'package:loki/core/theme/app_widgets.dart';
 
 Future<({double? metric, String? note})?> showOptionalMetricSheet(
   BuildContext context, {
@@ -11,60 +13,80 @@ Future<({double? metric, String? note})?> showOptionalMetricSheet(
   final noteCtrl = TextEditingController();
   return showCupertinoModalPopup<({double? metric, String? note})>(
     context: context,
-    builder: (ctx) => CupertinoPopupSurface(
-      child: Material(
-        color: CupertinoTheme.of(ctx).scaffoldBackgroundColor,
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              20,
-              20,
-              20,
-              MediaQuery.of(ctx).viewInsets.bottom + 20,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  habitTitle,
-                  style: CupertinoTheme.of(ctx).textTheme.navTitleTextStyle,
-                ),
-                const SizedBox(height: 12),
-                CupertinoTextField(
-                  controller: metricCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
+    builder: (ctx) {
+      final c = AppTheme.colors(ctx);
+      return CupertinoPopupSurface(
+        child: Material(
+          color: c.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                14,
+                20,
+                MediaQuery.of(ctx).viewInsets.bottom + 20,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 38,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: c.border,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
                   ),
-                  placeholder: unit == null
-                      ? 'metric_optional_hint'.tr
-                      : '${'metric_optional_hint'.tr} ($unit)',
-                  padding: const EdgeInsets.all(12),
-                ),
-                const SizedBox(height: 10),
-                CupertinoTextField(
-                  controller: noteCtrl,
-                  placeholder: 'Note',
-                  padding: const EdgeInsets.all(12),
-                ),
-                const SizedBox(height: 16),
-                CupertinoButton.filled(
-                  onPressed: () {
-                    final metric = double.tryParse(metricCtrl.text.trim());
-                    final note = noteCtrl.text.trim().isEmpty
-                        ? null
-                        : noteCtrl.text.trim();
-                    Navigator.of(ctx).pop((metric: metric, note: note));
-                  },
-                  child: Text('save'.tr),
-                ),
-              ],
+                  const SizedBox(height: 14),
+                  Text(
+                    habitTitle,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: c.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  LokiUnderlineField(
+                    label: unit == null
+                        ? 'metric_optional_hint'.tr
+                        : '${'metric_optional_hint'.tr} ($unit)',
+                    controller: metricCtrl,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    placeholder: 'VD: 25',
+                  ),
+                  const SizedBox(height: 16),
+                  LokiUnderlineField(
+                    label: 'Ghi chú',
+                    controller: noteCtrl,
+                    placeholder: 'Note',
+                  ),
+                  const SizedBox(height: 16),
+                  LokiPrimaryButton(
+                    label: 'save'.tr,
+                    icon: CupertinoIcons.check_mark_circled_solid,
+                    onPressed: () {
+                      final metric = double.tryParse(metricCtrl.text.trim());
+                      final note = noteCtrl.text.trim().isEmpty
+                          ? null
+                          : noteCtrl.text.trim();
+                      Navigator.of(ctx).pop((metric: metric, note: note));
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    ),
+      );
+    },
   );
 }
 

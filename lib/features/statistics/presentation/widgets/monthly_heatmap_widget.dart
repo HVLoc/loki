@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:loki/core/theme/app_theme.dart';
 import 'package:loki/core/utils/local_date_utils.dart';
 
 class MonthlyHeatmapWidget extends StatelessWidget {
@@ -19,27 +20,31 @@ class MonthlyHeatmapWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final c = AppTheme.colors(context);
     final firstDay = DateTime(year, month, 1);
     final leadingBlanks = firstDay.weekday - 1;
     final daysInMonth = LocalDateUtils.monthBounds(year, month).daysInMonth;
     final selectedStr = LocalDateUtils.format(selectedDate);
+    final todayStr = LocalDateUtils.format(DateTime.now());
 
     return Column(
       children: [
-        const Row(
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Text('T2'),
-            Text('T3'),
-            Text('T4'),
-            Text('T5'),
-            Text('T6'),
-            Text('T7'),
-            Text('CN'),
-          ],
+          children: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN']
+              .map(
+                (label) => Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: c.textSecondary,
+                  ),
+                ),
+              )
+              .toList(),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -56,41 +61,40 @@ class MonthlyHeatmapWidget extends StatelessWidget {
             final dateStr = LocalDateUtils.format(date);
             final rate = dayRates[dateStr] ?? 0.0;
             final isSelected = dateStr == selectedStr;
+            final isToday = dateStr == todayStr;
 
             final bgColor = rate <= 0
-                ? theme.colorScheme.surfaceContainerHighest.withValues(
-                    alpha: 0.5,
-                  )
-                : theme.colorScheme.primary.withValues(
-                    alpha: 0.25 + (0.75 * rate),
-                  );
+                ? c.surfaceMuted
+                : c.primary.withValues(alpha: 0.22 + (0.78 * rate));
 
             return Semantics(
               button: true,
               label: '$dateStr ${(rate * 100).round()}%',
               child: GestureDetector(
                 onTap: () => onSelectDate(date),
-                child: Container(
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
                   decoration: BoxDecoration(
                     color: bgColor,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(10),
                     border: isSelected
+                        ? Border.all(color: c.accentAmber, width: 2.2)
+                        : isToday
                         ? Border.all(
-                            color: theme.colorScheme.secondary,
-                            width: 2,
+                            color: c.primary.withValues(alpha: 0.65),
+                            width: 1.2,
                           )
-                        : null,
+                        : Border.all(color: c.border, width: 0.5),
                   ),
                   alignment: Alignment.center,
                   child: Text(
                     '$day',
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: rate > 0.5
-                          ? theme.colorScheme.onPrimary
-                          : theme.colorScheme.onSurface,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: rate > 0.55 ? Colors.white : c.textPrimary,
+                      fontWeight: isSelected || isToday
+                          ? FontWeight.w700
+                          : FontWeight.w500,
                     ),
                   ),
                 ),

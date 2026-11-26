@@ -1,6 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:loki/core/theme/app_theme.dart';
 import 'package:loki/features/life_plan/domain/entities/life_plan_entities.dart';
 
 class WheelRadarWidget extends StatelessWidget {
@@ -10,12 +10,9 @@ class WheelRadarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cupertinoTheme = CupertinoTheme.of(context);
     if (scores.length != 8) return const SizedBox.shrink();
 
-    final primary = cupertinoTheme.primaryColor;
-    final labelColor = CupertinoColors.label.resolveFrom(context);
-    final gridColor = CupertinoColors.separator.resolveFrom(context);
+    final c = AppTheme.colors(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -29,23 +26,25 @@ class WheelRadarWidget extends StatelessWidget {
               fontSize: 10,
               color: Colors.transparent,
             ),
-            gridBorderData: BorderSide(color: gridColor),
+            gridBorderData: BorderSide(color: c.border, width: 1),
             tickBorderData: BorderSide(
-              color: gridColor.withValues(alpha: 0.45),
+              color: c.border.withValues(alpha: 0.7),
+              width: 1,
             ),
-            radarBorderData: BorderSide(color: primary),
+            radarBorderData: BorderSide(color: c.primary, width: 1.5),
             titlePositionPercentageOffset: 0.2,
             titleTextStyle: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: labelColor,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: c.textPrimary,
             ),
             getTitle: (index, _) => RadarChartTitle(text: scores[index].label),
             dataSets: [
               RadarDataSet(
-                fillColor: primary.withValues(alpha: 0.22),
-                borderColor: primary,
-                entryRadius: 3,
+                fillColor: c.primary.withValues(alpha: 0.24),
+                borderColor: c.primary,
+                borderWidth: 2,
+                entryRadius: 3.5,
                 dataEntries: scores
                     .map((s) => RadarEntry(value: s.score.toDouble()))
                     .toList(),

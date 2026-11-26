@@ -1,6 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:loading_overlay_pro/loading_overlay_pro.dart';
+import 'package:loki/core/theme/app_theme.dart';
+import 'package:loki/core/theme/app_widgets.dart';
 import 'package:loki/features/life_plan/domain/entities/life_plan_entities.dart';
 import 'package:loki/features/life_plan/presentation/controllers/life_plan_controller.dart';
 import 'package:loki/features/life_plan/presentation/widgets/wheel_radar_widget.dart';
@@ -10,15 +13,23 @@ class LifePlanPage extends GetView<LifePlanController> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? const Color(0xFF1C1C1E) : Colors.white;
+    final c = AppTheme.colors(context);
 
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(middle: Text('life_plan_title'.tr)),
-      child: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
+    return Obx(
+      () => LoadingOverlayPro(
+        isLoading: controller.isSaving.value,
+        progressIndicator: LoadingBouncingLine.circle(
+          backgroundColor: c.primary,
+        ),
+        child: CupertinoPageScaffold(
+          navigationBar: CupertinoNavigationBar(
+            middle: Text('life_plan_title'.tr),
+            border: Border(bottom: BorderSide(color: c.border, width: 0.6)),
+          ),
+          child: SafeArea(
+            child: LokiFabScrollView(
+              fabLabel: 'Thêm mục tiêu',
+              onFabPressed: () => _showGoalDialog(context),
               child: CustomScrollView(
                 physics: const BouncingScrollPhysics(
                   parent: AlwaysScrollableScrollPhysics(),
@@ -43,64 +54,114 @@ class LifePlanPage extends GetView<LifePlanController> {
                                     ),
                                   )
                                   .toList();
+                          final avgScore = currentScores.isEmpty
+                              ? 0.0
+                              : currentScores
+                                        .map((e) => e.score)
+                                        .reduce((a, b) => a + b) /
+                                    currentScores.length;
 
-                          return Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: cardBg,
-                              borderRadius: BorderRadius.circular(18),
-                            ),
+                          return LokiCard(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   children: [
                                     Expanded(
-                                      child: Text(
-                                        'wheel_of_life'.tr,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'wheel_of_life'.tr,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 17,
+                                              fontWeight: FontWeight.w700,
+                                              color: c.textPrimary,
+                                              letterSpacing: -0.2,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            'Trung bình: ${avgScore.toStringAsFixed(1)}/10',
+                                            style: TextStyle(
+                                              fontSize: 12.5,
+                                              color: c.textSecondary,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                     const SizedBox(width: 8),
                                     CupertinoButton(
                                       padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
+                                        horizontal: 12,
+                                        vertical: 7,
                                       ),
+                                      minimumSize: const Size(44, 34),
+                                      color: c.primarySoft,
+                                      borderRadius: BorderRadius.circular(12),
                                       onPressed: () => _showWheelEditDialog(
                                         context,
                                         currentScores,
                                       ),
-                                      child: const Text('Đánh giá'),
+                                      child: Text(
+                                        'Đánh giá',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: c.primary,
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 8),
+                                const SizedBox(height: 10),
                                 WheelRadarWidget(scores: currentScores),
                               ],
                             ),
                           );
                         }),
-                        const SizedBox(height: 18),
+                        const SizedBox(height: 20),
                         Text(
                           'goals_1_3_5'.tr,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 17,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
+                            color: c.textPrimary,
+                            letterSpacing: -0.2,
                           ),
                         ),
                         const SizedBox(height: 10),
                         Obx(
                           () => CupertinoSlidingSegmentedControl<GoalHorizon>(
+                            backgroundColor: c.surfaceMuted,
+                            thumbColor: c.surface,
                             groupValue: controller.selectedHorizon.value,
-                            children: const {
-                              GoalHorizon.oneYear: Text('1 năm'),
-                              GoalHorizon.threeYears: Text('3 năm'),
-                              GoalHorizon.fiveYears: Text('5 năm'),
+                            children: {
+                              GoalHorizon.oneYear: Text(
+                                '1 năm',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: c.textPrimary,
+                                ),
+                              ),
+                              GoalHorizon.threeYears: Text(
+                                '3 năm',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: c.textPrimary,
+                                ),
+                              ),
+                              GoalHorizon.fiveYears: Text(
+                                '5 năm',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: c.textPrimary,
+                                ),
+                              ),
                             },
                             onValueChanged: (v) {
                               if (v != null) {
@@ -109,7 +170,7 @@ class LifePlanPage extends GetView<LifePlanController> {
                             },
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 14),
                         Obx(() {
                           final filteredGoals = controller.goals
                               .where(
@@ -119,25 +180,18 @@ class LifePlanPage extends GetView<LifePlanController> {
                               )
                               .toList();
                           if (filteredGoals.isEmpty) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 28),
-                              child: Center(
-                                child: Text(
-                                  'Chưa có mục tiêu ở mốc thời gian này.',
-                                ),
-                              ),
+                            return const LokiEmptyState(
+                              icon: CupertinoIcons.compass,
+                              title: 'Chưa có mục tiêu',
+                              subtitle:
+                                  'Chưa có mục tiêu ở mốc thời gian này. Hãy thêm mục tiêu đầu tiên bên dưới.',
                             );
                           }
                           return Column(
                             children: filteredGoals
                                 .map(
-                                  (g) => Container(
+                                  (g) => LokiCard(
                                     margin: const EdgeInsets.only(bottom: 12),
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: cardBg,
-                                      borderRadius: BorderRadius.circular(18),
-                                    ),
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
@@ -147,38 +201,55 @@ class LifePlanPage extends GetView<LifePlanController> {
                                             Expanded(
                                               child: Text(
                                                 g.title,
-                                                style: const TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w600,
+                                                style: TextStyle(
+                                                  fontSize: 16.5,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: c.textPrimary,
                                                 ),
                                               ),
                                             ),
-                                            Text(
-                                              '${g.progressPercent}%',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w600,
-                                                color: CupertinoTheme.of(
-                                                  context,
-                                                ).primaryColor,
-                                              ),
+                                            const SizedBox(width: 8),
+                                            LokiPillBadge(
+                                              label: '${g.progressPercent}%',
+                                              color: c.primary,
+                                              backgroundColor: c.primarySoft,
                                             ),
                                           ],
                                         ),
-                                        const SizedBox(height: 8),
+                                        const SizedBox(height: 10),
                                         ClipRRect(
                                           borderRadius: BorderRadius.circular(
                                             6,
                                           ),
                                           child: LinearProgressIndicator(
                                             value: g.progressPercent / 100,
-                                            minHeight: 6,
+                                            minHeight: 7,
+                                            backgroundColor: c.surfaceMuted,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                  c.primary,
+                                                ),
                                           ),
                                         ),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          'Kế hoạch tháng tới: ${g.nextMonthPlan}',
+                                        const SizedBox(height: 10),
+                                        Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: c.surfaceMuted,
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'Kế hoạch tháng tới: ${g.nextMonthPlan}',
+                                            style: TextStyle(
+                                              fontSize: 13.5,
+                                              color: c.textSecondary,
+                                            ),
+                                          ),
                                         ),
-                                        const SizedBox(height: 8),
+                                        const SizedBox(height: 10),
                                         Row(
                                           mainAxisAlignment:
                                               MainAxisAlignment.end,
@@ -186,24 +257,47 @@ class LifePlanPage extends GetView<LifePlanController> {
                                             CupertinoButton(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                    horizontal: 10,
+                                                    horizontal: 12,
+                                                    vertical: 6,
                                                   ),
+                                              minimumSize: const Size(44, 34),
+                                              color: c.surfaceMuted,
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
                                               onPressed: () =>
                                                   _showRevisions(context, g),
                                               child: Text(
                                                 'revision_history'.tr,
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: c.textSecondary,
+                                                ),
                                               ),
                                             ),
+                                            const SizedBox(width: 8),
                                             CupertinoButton(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                    horizontal: 10,
+                                                    horizontal: 12,
+                                                    vertical: 6,
                                                   ),
+                                              minimumSize: const Size(44, 34),
+                                              color: c.primarySoft,
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
                                               onPressed: () => _showGoalDialog(
                                                 context,
                                                 existing: g,
                                               ),
-                                              child: const Text('Cập nhật'),
+                                              child: Text(
+                                                'Cập nhật',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: c.primary,
+                                                ),
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -217,40 +311,11 @@ class LifePlanPage extends GetView<LifePlanController> {
                       ],
                     ),
                   ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 96)),
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: SizedBox(
-                width: double.infinity,
-                child: CupertinoButton.filled(
-                  borderRadius: BorderRadius.circular(14),
-                  onPressed: () => _showGoalDialog(context),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        CupertinoIcons.add_circled_solid,
-                        size: 20,
-                        color: Colors.white,
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Thêm mục tiêu',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -261,62 +326,73 @@ class LifePlanPage extends GetView<LifePlanController> {
     List<WheelDimensionScore> initial,
   ) async {
     final mutable = [...initial];
+    final c = AppTheme.colors(context);
     await showCupertinoDialog<void>(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setState) => CupertinoAlertDialog(
-          title: Text('wheel_of_life'.tr),
-          content: SizedBox(
-            height: 320,
-            child: SingleChildScrollView(
-              child: Column(
-                children: List.generate(mutable.length, (i) {
-                  final item = mutable[i];
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('${item.label}: ${item.score}/10'),
-                        SizedBox(
-                          width: double.infinity,
-                          child: CupertinoSlider(
-                            min: 1,
-                            max: 10,
-                            divisions: 9,
-                            value: item.score.toDouble(),
-                            onChanged: (v) {
-                              setState(() {
-                                mutable[i] = WheelDimensionScore(
-                                  dimensionKey: item.dimensionKey,
-                                  label: item.label,
-                                  score: v.round(),
-                                );
-                              });
-                            },
-                          ),
+      builder: (ctx) => Obx(
+        () => LoadingOverlayPro(
+          isLoading: controller.isSaving.value,
+          progressIndicator: LoadingBouncingLine.circle(
+            backgroundColor: c.primary,
+          ),
+          child: StatefulBuilder(
+            builder: (ctx, setState) => CupertinoAlertDialog(
+              title: Text('wheel_of_life'.tr),
+              content: SizedBox(
+                height: 320,
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: List.generate(mutable.length, (i) {
+                      final item = mutable[i];
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('${item.label}: ${item.score}/10'),
+                            SizedBox(
+                              width: double.infinity,
+                              child: CupertinoSlider(
+                                min: 1,
+                                max: 10,
+                                divisions: 9,
+                                value: item.score.toDouble(),
+                                onChanged: (v) {
+                                  setState(() {
+                                    mutable[i] = WheelDimensionScore(
+                                      dimensionKey: item.dimensionKey,
+                                      label: item.label,
+                                      score: v.round(),
+                                    );
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  );
-                }),
+                      );
+                    }),
+                  ),
+                ),
               ),
+              actions: [
+                CupertinoDialogAction(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text('cancel'.tr),
+                ),
+                CupertinoDialogAction(
+                  isDefaultAction: true,
+                  onPressed: controller.isSaving.value
+                      ? null
+                      : () async {
+                          await controller.saveWheelScores(mutable);
+                          if (ctx.mounted) Navigator.of(ctx).pop();
+                        },
+                  child: Text('save'.tr),
+                ),
+              ],
             ),
           ),
-          actions: [
-            CupertinoDialogAction(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: Text('cancel'.tr),
-            ),
-            CupertinoDialogAction(
-              isDefaultAction: true,
-              onPressed: () async {
-                await controller.saveWheelScores(mutable);
-                if (ctx.mounted) Navigator.of(ctx).pop();
-              },
-              child: Text('save'.tr),
-            ),
-          ],
         ),
       ),
     );

@@ -1,7 +1,8 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loki/core/constants/app_routes.dart';
+import 'package:loki/core/theme/app_theme.dart';
+import 'package:loki/core/theme/app_widgets.dart';
 import 'package:loki/features/weaknesses/domain/entities/weakness.dart';
 import 'package:loki/features/weaknesses/presentation/controllers/weaknesses_controller.dart';
 
@@ -10,163 +11,191 @@ class WeaknessesPage extends GetView<WeaknessesController> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = CupertinoTheme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? const Color(0xFF1C1C1E) : Colors.white;
+    final c = AppTheme.colors(context);
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text('weaknesses_title'.tr),
+        border: Border(bottom: BorderSide(color: c.border, width: 0.6)),
       ),
       child: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: CustomScrollView(
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
-                slivers: [
-                  CupertinoSliverRefreshControl(
-                    onRefresh: () => controller.loadWeaknesses(),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Obx(() {
-                      if (controller.isLoading.value &&
-                          controller.weaknesses.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 80),
-                          child: Center(
-                            child: CupertinoActivityIndicator(radius: 14),
+        child: LokiFabScrollView(
+          fabLabel: 'Thêm điểm yếu',
+          onFabPressed: () => Get.toNamed(AppRoutes.weaknessForm),
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            slivers: [
+              CupertinoSliverRefreshControl(
+                onRefresh: () => controller.loadWeaknesses(),
+              ),
+              SliverToBoxAdapter(
+                child: Obx(() {
+                  if (controller.isLoading.value &&
+                      controller.weaknesses.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 80),
+                      child: Center(
+                        child: CupertinoActivityIndicator(radius: 14),
+                      ),
+                    );
+                  }
+                  if (controller.weaknesses.isEmpty) {
+                    return const LokiEmptyState(
+                      icon: CupertinoIcons.scope,
+                      title: 'Nhận diện điểm cần cải thiện',
+                      subtitle:
+                          'Thêm điểm yếu để gắn các thói quen hằng ngày và theo dõi tiến bộ.',
+                    );
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
                           ),
-                        );
-                      }
-                      return ListView.separated(
+                          decoration: BoxDecoration(
+                            color: c.surfaceMuted,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: c.border),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: c.accentAmberSoft,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  CupertinoIcons.scope,
+                                  size: 18,
+                                  color: c.accentAmber,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${controller.weaknesses.length} điểm yếu đang theo dõi',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: c.textPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Chạm vào thẻ để gắn thói quen hoặc chỉnh sửa',
+                                      style: TextStyle(
+                                        fontSize: 12.5,
+                                        color: c.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      ListView.separated(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 28),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                         itemCount: controller.weaknesses.length,
                         separatorBuilder: (_, _) => const SizedBox(height: 12),
                         itemBuilder: (ctx, index) {
                           final w = controller.weaknesses[index];
-                          return GestureDetector(
+                          return LokiCard(
                             onTap: () => _showActions(context, w),
-                            child: Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: cardBg,
-                                borderRadius: BorderRadius.circular(18),
-                                boxShadow: isDark
-                                    ? null
-                                    : [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.04,
-                                          ),
-                                          blurRadius: 12,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          w.title,
-                                          style: const TextStyle(
-                                            fontSize: 17,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ),
-                                      CupertinoButton(
-                                        padding: EdgeInsets.zero,
-                                        onPressed: () =>
-                                            _showActions(context, w),
-                                        child: const Icon(
-                                          CupertinoIcons.ellipsis_circle,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    w.actionOrientation,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: CupertinoColors.secondaryLabel
-                                          .resolveFrom(context),
-                                    ),
-                                  ),
-                                  if (w.metricLabel != null) ...[
-                                    const SizedBox(height: 10),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 5,
-                                      ),
+                                      width: 38,
+                                      height: 38,
                                       decoration: BoxDecoration(
-                                        color: CupertinoTheme.of(
-                                          context,
-                                        ).primaryColor.withValues(alpha: 0.12),
+                                        color: c.primarySoft,
                                         borderRadius: BorderRadius.circular(12),
                                       ),
-                                      child: Text(
-                                        w.metricLabel!,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                          color: CupertinoTheme.of(
-                                            context,
-                                          ).primaryColor,
-                                        ),
+                                      child: Icon(
+                                        CupertinoIcons.bolt_fill,
+                                        size: 18,
+                                        color: c.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            w.title,
+                                            style: TextStyle(
+                                              fontSize: 16.5,
+                                              fontWeight: FontWeight.w700,
+                                              color: c.textPrimary,
+                                              letterSpacing: -0.2,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            w.actionOrientation,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              height: 1.4,
+                                              color: c.textSecondary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    CupertinoButton(
+                                      padding: EdgeInsets.zero,
+                                      minimumSize: const Size(36, 36),
+                                      onPressed: () => _showActions(context, w),
+                                      child: Icon(
+                                        CupertinoIcons.ellipsis_circle,
+                                        color: c.textSecondary,
                                       ),
                                     ),
                                   ],
+                                ),
+                                if (w.metricLabel != null) ...[
+                                  const SizedBox(height: 12),
+                                  LokiPillBadge(
+                                    icon: CupertinoIcons.chart_bar_alt_fill,
+                                    label: w.metricLabel!,
+                                    color: c.primary,
+                                    backgroundColor: c.primarySoft,
+                                  ),
                                 ],
-                              ),
+                              ],
                             ),
                           );
                         },
-                      );
-                    }),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: SizedBox(
-                width: double.infinity,
-                child: CupertinoButton.filled(
-                  borderRadius: BorderRadius.circular(14),
-                  onPressed: () => _showWeaknessDialog(context),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        CupertinoIcons.add_circled_solid,
-                        size: 20,
-                        color: Colors.white,
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        'Thêm điểm yếu',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
                       ),
                     ],
-                  ),
-                ),
+                  );
+                }),
               ),
-            ),
-          ],
+              const SliverToBoxAdapter(child: SizedBox(height: 96)),
+            ],
+          ),
         ),
       ),
     );
@@ -188,7 +217,7 @@ class WeaknessesPage extends GetView<WeaknessesController> {
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.of(ctx).pop();
-              _showWeaknessDialog(context, existing: w);
+              Get.toNamed(AppRoutes.weaknessForm, arguments: w);
             },
             child: const Text('Chỉnh sửa'),
           ),
@@ -205,68 +234,6 @@ class WeaknessesPage extends GetView<WeaknessesController> {
           onPressed: () => Navigator.of(ctx).pop(),
           child: Text('cancel'.tr),
         ),
-      ),
-    );
-  }
-
-  Future<void> _showWeaknessDialog(
-    BuildContext context, {
-    Weakness? existing,
-  }) async {
-    final titleCtrl = TextEditingController(text: existing?.title ?? '');
-    final actionCtrl = TextEditingController(
-      text: existing?.actionOrientation ?? '',
-    );
-    final metricCtrl = TextEditingController(text: existing?.metricLabel ?? '');
-
-    await showCupertinoDialog<void>(
-      context: context,
-      builder: (ctx) => CupertinoAlertDialog(
-        title: Text(existing == null ? 'Thêm điểm yếu' : 'Sửa điểm yếu'),
-        content: Padding(
-          padding: const EdgeInsets.only(top: 12),
-          child: Column(
-            children: [
-              CupertinoTextField(
-                controller: titleCtrl,
-                placeholder: 'Điểm yếu *',
-                padding: const EdgeInsets.all(10),
-              ),
-              const SizedBox(height: 8),
-              CupertinoTextField(
-                controller: actionCtrl,
-                maxLines: 2,
-                placeholder: 'Định hướng khắc phục',
-                padding: const EdgeInsets.all(10),
-              ),
-              const SizedBox(height: 8),
-              CupertinoTextField(
-                controller: metricCtrl,
-                placeholder: 'Chỉ số đo',
-                padding: const EdgeInsets.all(10),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          CupertinoDialogAction(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('cancel'.tr),
-          ),
-          CupertinoDialogAction(
-            isDefaultAction: true,
-            onPressed: () async {
-              final ok = await controller.addOrUpdateWeakness(
-                existing: existing,
-                title: titleCtrl.text,
-                actionOrientation: actionCtrl.text,
-                metricLabel: metricCtrl.text,
-              );
-              if (ok && ctx.mounted) Navigator.of(ctx).pop();
-            },
-            child: Text('save'.tr),
-          ),
-        ],
       ),
     );
   }

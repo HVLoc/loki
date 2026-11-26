@@ -8,6 +8,7 @@ import 'package:loki/features/home/presentation/home_shell_page.dart';
 import 'package:loki/features/life_plan/presentation/controllers/life_plan_controller.dart';
 import 'package:loki/features/statistics/presentation/controllers/statistics_controller.dart';
 import 'package:loki/features/weaknesses/presentation/bindings/weakness_binding.dart';
+import 'package:loki/features/weaknesses/presentation/pages/weakness_form_page.dart';
 
 final class AppPages {
   AppPages._();
@@ -25,6 +26,11 @@ final class AppPages {
       ],
     ),
     GetPage(name: AppRoutes.habitForm, page: () => const HabitFormPage()),
+    GetPage(name: AppRoutes.weaknessForm, page: () => const WeaknessFormPage()),
+    GetPage(
+      name: AppRoutes.weaknessForm,
+      page: () => const WeaknessFormPage(),
+    ),
     GetPage(
       name: AppRoutes.accountSettings,
       page: () => const AccountSettingsPage(),
